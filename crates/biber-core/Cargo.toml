@@ -25,7 +25,7 @@ unicode-normalization.workspace = true
 unicode-segmentation.workspace = true
 md-5 = "0.10"
 hex = "0.4"
-icu_collator = "1.5"
+icu_collator = "2.2"
 icu_locid = "1.5"
 icu_provider = { version = "1.5", default-features = false, features = ["std"] }
 
