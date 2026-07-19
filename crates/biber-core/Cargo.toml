@@ -27,7 +27,7 @@ md-5 = "0.10"
 hex = "0.4"
 icu_collator = "1.5"
 icu_locid = "1.5"
-icu_provider = { version = "1.5", default-features = false, features = ["std"] }
+icu_provider = { version = "2.2", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 biber-input-bcf.workspace = true
