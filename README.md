@@ -1,102 +1,301 @@
-# OVERVIEW
+# TeXWASM-biber
 
-Biber is a sophisticated bibliography processing backend for the LaTeX
-biblatex package. It supports an unsurpassed feature set for automated
-conformance to complex bibliography style requirements such as labelling,
-sorting and name handling. It has comprehensive Unicode support.
+A Rust port of [biber](https://github.com/plk/biber), the bibliography
+backend for the [biblatex](https://ctan.org/pkg/biblatex) LaTeX package.
+The port compiles to native binaries and to WebAssembly, enabling
+in-browser bibliography processing without a LaTeX toolchain.
 
-**Please note**--the default download for all platforms is 64-bit. Please
-look in the files section for the correct 32-bit platform instead of
-using the default download button if you want 32-bit.
+The original biber is written in Perl (~28 k lines across 29 modules).
+This port reimplements the full `.bcf` + `.bib` → `.bbl` pipeline in
+pure Rust with no C dependencies, making it suitable for WASM and
+embedded environments.
 
-## REQUIREMENTS
+## Build
 
-Biber is written in Perl with the aim of providing a customised and
-sophisticated data preparation backend for biblatex.
+### Prerequisites
 
-You do not need to install Perl to use biber--binaries are provided for many
-operating systems via the main TeX distributions (TeXLive, MacTeX, MiKTeX)
-and also via download from SourceForge.
+- Rust stable (≥ 1.70). The toolchain is pinned in `rust-toolchain.toml`,
+  which also adds the `wasm32-unknown-unknown` and `wasm32-wasip1`
+  targets automatically.
+- For the Perl test suite (optional, only needed for the parity
+  harness): Perl ≥ 5.32 with `perl Build.PL && ./Build installdeps`.
 
-You only need a Perl installation to use biber in one of the following
-cases:
-
-- A binary version is not available for your OS/platform.
-- You wish to keep up with all of the bleeding-edge git commits before they are packaged into a binary.
-
-For the vast majority of users, using the latest binary for the OS/platform
-you are using will be what you want to do. For details on the requirements
-for installing the Perl program version, please see the biber PDF documentation.
-
-The git repository for Biber is kept on github:
-
-[https://github.com/plk/biber](https://github.com/plk/biber)
-
-## INSTALLING
-
-If you wish to install from the source, make sure you have permissions to
-install Perl modules, get the source and from the top-level source
-directory, do:
+### Native (CLI + library)
 
 ```
-perl Build.PL
-./Build installdeps
-./Build install
+cargo build --workspace
+cargo test  --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-biber should now be available in your path, run `biber --version` to verify.
+### WASM — browser (`wasm32-unknown-unknown`)
 
-## USEFUL ENVIRONMENT VARIABLES
+```
+cargo check -p biber-wasm --target wasm32-unknown-unknown
+cargo build -p biber-wasm --target wasm32-unknown-unknown --release
+```
 
-There are a few environment variables for `biber` which are useful sometimes:
+The output is a `wasm32-unknown-unknown` cdylib that can be packaged
+with `wasm-bindgen` or `wasm-pack`:
 
-### ISBN_RANGE_MESSAGE
+```
+wasm-pack build crates/biber-wasm --target web --release
+```
 
-`biber` uses the Perl `Business::ISBN::Data` module to verify ISBNs. This relies
-on a data file called `RangeMessage.xml` which comes with the module and which
-is packaged with `biber`. This can be updated quite regularly and the packaged
-version might be several months old. If you find yourself needing an updated
-version of this file (e.g. you have ISBN validation errors when using `biber`s
-`--validate-datamodel` option), then you can download a recent version from
-here:
-[https://www.isbn-international.org/range_file_generation](https://www.isbn-international.org/range_file_generation)
-and point to the location with this environment variable.
+### WASM — WASI / Node (`wasm32-wasip1`)
 
-### PAR_GLOBAL_TMPDIR
+```
+cargo check -p biber-cli --target wasm32-wasip1
+cargo build -p biber-cli --target wasm32-wasip1 --release
+```
 
-When a new version of the binary version of `biber` first runs, it unpacks
-itself to location which is OS dependent but usually some sort of temporary
-location (which you can see with `biber --cache`). Sometimes, this causes
-problems because the OS might clean up files in the default location or you
-might not have permissions to unpack `biber` to the default location. You can
-use this environment variable to set the location of the unpack cache.
+The WASI binary can be run directly in Node.js (≥ 20) or any WASI
+runtime (`wasmtime`, `wasmer`, `wasmtime run`).
 
-## SUPPORT AND DOCUMENTATION
+### CLI usage (native)
 
-After installing, `biber --help` will give you the basic documentation.
+```
+cargo run -p biber-cli -- --noconf --nolog t/tdata/full-bbl.bcf   # normal mode
+cargo run -p biber-cli -- --tool --nolog t/tdata/names.bib        # tool mode
+```
 
-The latest PDF documentation can be found here:
+```
+biber (Rust port) 0.0.0
+BCF → BBL/BBLXML/DOT + tool mode (BibTeX/BiblateXML ↔ BibTeX/BiblateXML/BBLXML/DOT) + RELAX NG schema generation and output validation.
 
-[https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber](https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber)
+Usage:
+  biber [OPTIONS] <BCF>                  (normal mode)
+  biber --tool [OPTIONS] <BIB> [BIB...]  (tool mode)
 
-More information, bugfix releases, forums and bug tracker are available at:
+Options:
+  --output-format=FMT     output format (normal: bbl|bblxml|dot; tool: bibtex|biblatexml|bblxml|dot)
+  --output-file=PATH      write output to PATH
+  --output-directory=DIR  write .blg log to DIR
+  --input-directory=DIR   resolve datasources relative to DIR
+  --logfile=NAME          base name for .blg log file
+  --output-safechars      encode Unicode to LaTeX macros in output
+  --output-safecharsset=S safechars set: base (default), full, null
+  --trace, -T             trace-level logging (very verbose)
+  --debug, -D             debug-level logging
+  --quiet, -q             suppress screen output (repeat for less)
+  --nolog                 suppress .blg log file output
+  --noconf                ignore biber.conf
+  --tool                  run in tool mode (BibTeX/BiblateXML -> various formats)
+  -h, --help              show this help
+  -V, --version           show version
+```
 
-[https://github.com/plk/biber](https://github.com/plk/biber)
+## Using the WASM bindings from TypeScript
 
-## BUILDING
+The `biber-wasm` crate exposes two functions via `wasm-bindgen`:
 
-If you wish to build you own binary, see the main biber PDF documentation
-and particularly the included BUILDERS.README file
-The PDF documentation is in the `documentation` folder for the release on
-Sourceforge.
+- **`process_biber(bcf: string, bibs: [string, string][], opts: object): string`**
+  — runs the full pipeline and returns the `.bbl` output.
+- **`version(): string`** — returns a version string.
 
-## LICENCE
+### Install
 
-Copyright 2009-2025 François Charette and Philip Kime, all rights reserved.
+After building with `wasm-pack`:
 
-This module is free software.  You can redistribute it and/or
-modify it under the terms of the Artistic License 2.0.
+```
+wasm-pack build crates/biber-wasm --target web --release
+```
 
-This program is distributed in the hope that it will be useful,
-but without any warranty; without even the implied warranty of
-merchantability or fitness for a particular purpose.
+This produces a `pkg/` directory containing `biber_wasm.js`,
+`biber_wasm_bg.wasm`, and `biber_wasm.d.ts` (TypeScript
+declarations generated by `wasm-bindgen`).
+
+### TypeScript example
+
+```typescript
+// biber.ts
+import init, { process_biber, version } from "./pkg/biber_wasm.js";
+
+export class Biber {
+  private ready = false;
+
+  /** Load the WASM module. Call once before process(). */
+  async init(): Promise<void> {
+    if (!this.ready) {
+      await init();        // instantiates the .wasm module
+      this.ready = true;
+    }
+  }
+
+  /** Return the biber version string. */
+  getVersion(): string {
+    return version();
+  }
+
+  /**
+   * Run the biber pipeline.
+   *
+   * @param bcf  Contents of the .bcf control file (UTF-8 string).
+   * @param bibs Array of [name, contents] pairs for each .bib datasource.
+   *             The host is responsible for reading files / fetching URLs
+   *             and passing the contents as strings.
+   * @returns    The .bbl output as a string.
+   */
+  process(bcf: string, bibs: [string, string][]): string {
+    return process_biber(bcf, bibs, {});
+  }
+}
+```
+
+### Browser usage
+
+```html
+<!DOCTYPE html>
+<script type="module">
+  import init, { process_biber, version } from "./pkg/biber_wasm.js";
+
+  await init();
+
+  // Fetch the .bcf and .bib files from the server
+  const bcf = await (await fetch("refs.bcf")).text();
+  const bib = await (await fetch("refs.bib")).text();
+
+  // Run biber — no LaTeX toolchain needed
+  const bbl = process_biber(bcf, [["refs.bib", bib]], {});
+  console.log(bbl);
+</script>
+```
+
+### Node.js usage
+
+```javascript
+const { process_biber, version } = await import("./pkg/biber_wasm.js");
+const fs = await import("node:fs");
+
+const bcf = fs.readFileSync("refs.bcf", "utf8");
+const bib = fs.readFileSync("refs.bib", "utf8");
+
+const bbl = process_biber(bcf, [["refs.bib", bib]], {});
+fs.writeFileSync("refs.bbl", bbl);
+```
+
+### API reference (TypeScript signatures)
+
+```typescript
+/** Generated by wasm-bindgen — simplified for documentation. */
+export function process_biber(
+  bcf: string,
+  bibs: Array<[string, string]>,  // [datasourceName, bibContents]
+  opts: object,                    // reserved for future use
+): string;                        // .bbl output
+
+export function version(): string;
+```
+
+The `bibs` parameter is a JS array of `[name, contents]` pairs. Each
+entry maps to a `<bcf:datasource>` in the `.bcf` file. The host is
+responsible for resolving file paths / URLs and passing UTF-8 string
+contents — the WASM module has no filesystem or network access.
+
+The `opts` parameter is currently ignored. Future options will mirror
+the most common `bin/biber` CLI flags.
+
+### WASI / Node CLI
+
+The `biber-cli` binary can also be compiled to `wasm32-wasip1` and run
+directly in Node or any WASI runtime:
+
+```
+cargo build -p biber-cli --target wasm32-wasip1 --release
+node target/wasm32-wasip1/release/biber.wasm --noconf --nolog refs.bcf
+```
+
+## Feature comparison with original biber
+
+### Implemented (v1 MVP)
+
+| Feature | Status |
+|---------|--------|
+| `biber.conf` config file parsing | ✅ `biber-core::config_reader` (roxmltree) |
+| `.bcf` control-file parsing (BCF v3.11) | ✅ Full |
+| BibTeX (`.bib`) reader — entry scanner, macros, `#` concatenation | ✅ Full |
+| BibTeX name parser — standard + extended (biblatex) format | ✅ Full |
+| LaTeX ↔ Unicode recode (`latex_decode` / `latex_encode`) | ✅ Base + Full sets |
+| Date parser — ISO 8601-2, EDTF, uncertain/approximate, Julian | ✅ Full |
+| BCP47 language tag parser | ✅ Full |
+| Processing pipeline — alias/xdata/sets/interentry/datamodel-validation | ✅ Implemented |
+| Processing pipeline — labelname/labeldate/labeltitle | ✅ Implemented |
+| Processing pipeline — name hashing (namehash/fullhash/per-name hashes) | ✅ Implemented |
+| Processing pipeline — name disambiguation | ✅ Implemented |
+| Processing pipeline — extradate, extraalpha, extraname, extratitle | ✅ Implemented |
+| Processing pipeline — labelalpha (template engine) | ✅ Implemented |
+| Processing pipeline — work uniqueness (singletitle/uniquetitle/etc.) | ✅ Implemented |
+| Processing pipeline — sort/filter lists | ✅ Implemented (ICU4X locale-aware sorting) |
+| Processing pipeline — sortinit/sortinithash/labelprefix | ✅ Implemented |
+| `.bbl` writer (BBL v3.3) | ✅ Full (no `<BDS>` placeholders) |
+| `bblxml` output (`--output-format=bblxml`) | ✅ `biber-output-bblxml` (quick-xml) |
+| `dot` output (`--output-format=dot`) | ✅ `biber-output-dot` (Graphviz digraph) |
+| Sourcemap (`\DeclareSourcemap`) application | ✅ `biber-core::sourcemap` — field rename, type rename, match/replace, field set, entry clone/null, filters |
+| CrossRef/XDATA inheritance | ✅ `biber-core::inheritance` — `inherit_from()` with BCF inheritance scheme, cascading crossrefs, circular ref detection, `noinherit` suppression, datepart blocking |
+| CLI (`biber-cli`) | ✅ Normal mode (`--output-format=bbl|bblxml|dot`), tool mode (`--tool`, `--output-format=bibtex|biblatexml|bblxml|dot`) |
+| Logging (`--trace`/`--debug`/`--quiet`) | ✅ `BlgLayer` + dual tracing subscriber; `.blg` with `[%r] target> LEVEL - msg` format |
+| `.blg` log file output | ✅ Auto-derived from BCF stem; `--logfile`, `--output-directory`, `--nolog` control |
+| BiblateXML (`.bltxml`) input reader | ✅ `biber-input-biblatexml` (roxmltree) |
+| BiblateXML output (`--output-format=biblatexml`) | ✅ `biber-output-biblatexml` (quick-xml) |
+| WASM browser bindings (`wasm32-unknown-unknown`) | ✅ `process_biber()` API |
+| WASI/Node CLI (`wasm32-wasip1`) | ✅ Full filesystem access |
+| ISBN/ISSN/ISMN validation | ✅ `biber-core::validate` — checksums validated in pipeline |
+| ICU4X locale-aware collation | ✅ `biber-core::collation` — babel→BCP47 locales, `collate_options`, `sortcase`/`sortupper` |
+| Output safechars (`--output-safechars`/`--output-safecharsset`) | ✅ `biber-core::latex_recode::latex_encode` — BBL/BibTeX writers, CLI flags |
+| `--wraplines` (line wrapping) | ✅ BBL output, CLI `--wraplines[=N]`/`-w[N]` |
+| Annotations (`\annotation` in `.bbl`) | ✅ BibTeX `+an` fields, BBL output |
+| `--validate-config` / `--validate-control` | ✅ RELAX NG schema compiled-in |
+| `--validate-datamodel` | ✅ `biber-core::validate` — full constraint checking |
+| `Lingua::Translit` transliteration | ✅ Pure Rust, 3 transliteration pairs |
+| Schema generation (`generate_bltxml_schema` / `generate_bblxml_schema`) | ✅ Both `DataModel` methods generate RNG schemas; `--no-bltxml-schema`/`--no-bblxml-schema` to suppress; `<?xml-model?>` PI in biblatexml output |
+| `--validate-bltxml` / `--validate-bblxml` (RNG output validation) | ✅ Validates XML output against generated RNG schemas via `anyxml` |
+
+### Deferred / intentionally dropped
+
+| Feature | Status |
+|---------|--------|
+| Remote `.bib` fetching (`LWP::UserAgent`) | Dropped for WASM. The host resolves URLs and passes bytes. |
+| `kpsewhich` path resolution | Dropped for WASM. Inputs come pre-resolved. |
+
+### Parity status
+
+The cross-language parity harness
+(`crates/biber-core/tests/parity.rs`) runs the full Rust pipeline (BCF
+parse → Bib parse → `prepare()` → `write_bbl()`) and compares
+byte-for-byte with Perl `bin/biber`. It runs as part of `cargo test`
+(no special flags needed). Requires `perl` + the cloned biber repo at
+`biber/` in the workspace root (or set `BIBER_BIBER` to an alternate
+path). If the Perl biber script is not found, the test skips
+gracefully.
+
+## Repository layout
+
+```
+texwasm-biber/
+  Cargo.toml                  # virtual workspace
+  rust-toolchain.toml         # stable + wasm targets
+  crates/
+    biber-core/               # pipeline, data model, processing passes,
+                              # collation (ICU4X locale-aware sorting)
+    biber-input-bcf/          # .bcf reader (roxmltree)
+    biber-input-bib/          # .bib reader (pure-Rust BibTeX parser)
+    biber-output-bbl/         # .bbl writer
+    biber-cli/                # thin CLI (native + WASI)
+    biber-wasm/               # wasm-bindgen bindings (browser)
+    biber-input-biblatexml/   # .bltxml reader (roxmltree)
+    biber-output-bblxml/      # .bblxml writer (quick-xml)
+    biber-output-bibtex/      # BibTeX output writer (tool mode)
+    biber-output-dot/         # Graphviz DOT writer
+    biber-output-biblatexml/  # .bltxml output writer (quick-xml)
+  data/                       # vendored config + schemata
+  biber/                       # original Perl biber source (reference)
+  biber/lib/Biber/             # Perl modules
+  t/tdata/                    # test fixtures (shared with Perl suite)
+```
+
+## Licence
+
+Artistic License 2.0, matching the original biber.
+
+Copyright 2009–2025 François Charette and Philip Kime (original Perl
+biber). Rust port by Daniel Spitzer.

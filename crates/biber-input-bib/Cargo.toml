@@ -1,0 +1,16 @@
+[package]
+name = "biber-input-bib"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "BibTeX (.bib) reader for the biber port (replaces Text::BibTeX)"
+
+[dependencies]
+biber-core.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+unicode-normalization.workspace = true

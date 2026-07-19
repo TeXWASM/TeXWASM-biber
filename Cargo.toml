@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/biber-core",
+    "crates/biber-input-bcf",
+    "crates/biber-input-bib",
+    "crates/biber-input-biblatexml",
+    "crates/biber-output-bbl",
+    "crates/biber-output-bblxml",
+    "crates/biber-output-bibtex",
+    "crates/biber-output-dot",
+    "crates/biber-output-biblatexml",
+    "crates/biber-cli",
+    "crates/biber-wasm",
+]
+default-members = ["crates/biber-core", "crates/biber-cli"]
+
+[workspace.package]
+version = "1.0.0-alpha"
+edition = "2021"
+rust-version = "1.70"
+license = "Artistic-2.0"
+authors = ["François Charette, Philip Kime and Daniel Spitzer"]
+repository = "https://github.com/plk/biber"
+description = "Rust/WASM port of biber (biblatex backend)"
+
+[workspace.dependencies]
+# Internal crates
+biber-core = { path = "crates/biber-core" }
+biber-input-bcf = { path = "crates/biber-input-bcf" }
+biber-input-bib = { path = "crates/biber-input-bib" }
+biber-output-bbl = { path = "crates/biber-output-bbl" }
+biber-output-bibtex = { path = "crates/biber-output-bibtex" }
+biber-input-biblatexml = { path = "crates/biber-input-biblatexml" }
+biber-output-biblatexml = { path = "crates/biber-output-biblatexml" }
+biber-output-bblxml = { path = "crates/biber-output-bblxml" }
+biber-output-dot = { path = "crates/biber-output-dot" }
+
+# External
+anyhow = "1"
+thiserror = "1"
+quick-xml = "0.31"
+roxmltree = "0.20"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "env-filter"] }
+unicode-normalization = "0.1"
+unicode-segmentation = "1"
+textwrap = "0.16"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+# Smallest possible WASM bundle for the browser build.
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"

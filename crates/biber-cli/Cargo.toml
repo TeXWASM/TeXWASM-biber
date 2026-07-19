@@ -1,0 +1,32 @@
+[package]
+name = "biber-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Thin CLI for the biber port (native + WASI parity testing)"
+
+[[bin]]
+name = "biber"
+path = "src/main.rs"
+
+[features]
+default = ["fs"]
+fs = ["biber-core/fs"]
+
+[dependencies]
+biber-core.workspace = true
+biber-input-bcf.workspace = true
+biber-input-bib.workspace = true
+biber-output-bbl.workspace = true
+biber-output-bibtex.workspace = true
+biber-input-biblatexml.workspace = true
+biber-output-biblatexml.workspace = true
+biber-output-bblxml.workspace = true
+biber-output-dot.workspace = true
+anyhow.workspace = true
+anyxml = "0.14"
+tracing.workspace = true
+tracing-subscriber.workspace = true

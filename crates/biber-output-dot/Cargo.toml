@@ -1,0 +1,12 @@
+[package]
+name = "biber-output-dot"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Graphviz dot output writer for the biber port (deferred: tool-mode only)"
+
+[dependencies]
+biber-core.workspace = true

@@ -1,0 +1,13 @@
+[package]
+name = "biber-output-bblxml"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "bblxml output writer for the biber port (deferred: tool-mode only)"
+
+[dependencies]
+biber-core.workspace = true
+quick-xml.workspace = true

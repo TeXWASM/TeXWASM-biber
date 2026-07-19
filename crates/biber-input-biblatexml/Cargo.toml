@@ -1,0 +1,13 @@
+[package]
+name = "biber-input-biblatexml"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "biblatexml reader for the biber port"
+
+[dependencies]
+biber-core.workspace = true
+roxmltree.workspace = true
