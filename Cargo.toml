@@ -38,7 +38,7 @@ biber-output-dot = { path = "crates/biber-output-dot" }
 
 # External
 anyhow = "1"
-thiserror = "1"
+thiserror = "2"
 quick-xml = "0.41"
 roxmltree = "0.21"
 tracing = "0.1"
