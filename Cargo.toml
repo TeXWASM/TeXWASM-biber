@@ -39,7 +39,7 @@ biber-output-dot = { path = "crates/biber-output-dot" }
 # External
 anyhow = "1"
 thiserror = "1"
-quick-xml = "0.31"
+quick-xml = "0.41"
 roxmltree = "0.20"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "env-filter"] }
