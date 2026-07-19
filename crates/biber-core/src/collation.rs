@@ -3,9 +3,11 @@
 //! Provides locale resolution and collator creation for sorting
 //! bibliography entries according to language-specific rules.
 
-use icu_collator::{AlternateHandling, CaseLevel, Collator, CollatorOptions, Strength};
-use icu_locid::Locale;
-use icu_provider::DataLocale;
+use icu_collator::{
+    options::{AlternateHandling, CaseLevel, CollatorOptions, Strength},
+    Collator, CollatorBorrowed, CollatorPreferences,
+};
+use icu_locale_core::Locale;
 
 use crate::config::Config;
 use crate::constants::locale_map;
@@ -17,40 +19,34 @@ use crate::constants::locale_map;
 pub fn resolve_locale(name: &str) -> Locale {
     let map = locale_map();
     if let Some(&bcp47) = map.get(name) {
-        bcp47.parse().unwrap_or(Locale::UND)
+        bcp47.parse().unwrap_or(Locale::UNKNOWN)
     } else {
-        name.parse().unwrap_or(Locale::UND)
+        name.parse().unwrap_or(Locale::UNKNOWN)
     }
 }
 
-/// Create an ICU4X `Collator` from resolved locale and config options.
+/// Create an ICU4X `CollatorBorrowed` from resolved locale and config options.
 ///
 /// Applies `sortcase`, `sortupper`, and `collate_options` from config.
-pub fn create_collator(locale: &Locale, config: &Config) -> Collator {
-    let mut options = CollatorOptions::new();
+pub fn create_collator(locale: &Locale, config: &Config) -> CollatorBorrowed<'static> {
+    let mut options = CollatorOptions::default();
 
-    // Parse collate_options (default: "level=4,variable=non-ignorable,...")
     if let Some(collate_str) = config.getoption_str("collate_options") {
         apply_collate_options(&mut options, collate_str);
     }
 
-    // Apply sortcase: when sortcase=0 (case-insensitive), ensure strength
-    // is at most Secondary (ignores case differences)
     if let Some(sortcase) = config.getoption_str("sortcase") {
         if sortcase == "0" && options.strength.is_none() {
             options.strength = Some(Strength::Secondary);
         }
     }
 
-    let data_locale: DataLocale = locale.into();
-    Collator::try_new(&data_locale, options).unwrap_or_else(|_| {
-        let root: DataLocale = Locale::UND.into();
-        Collator::try_new(&root, CollatorOptions::new())
+    Collator::try_new(CollatorPreferences::from(locale), options).unwrap_or_else(|_| {
+        Collator::try_new(Default::default(), CollatorOptions::default())
             .expect("ICU4X fallback collator should not fail")
     })
 }
 
-/// Parse a `collate_options` string and apply to `CollatorOptions`.
 fn apply_collate_options(options: &mut CollatorOptions, s: &str) {
     for part in s.split(',') {
         let kv: Vec<&str> = part.splitn(2, '=').collect();
@@ -81,18 +77,16 @@ fn apply_collate_options(options: &mut CollatorOptions, s: &str) {
                     options.case_level = Some(CaseLevel::Off);
                 }
             }
-            "normalization" => {
-                // ICU4X handles normalization internally; this is a hint.
-            }
+            "normalization" => {}
             _ => {}
         }
     }
 }
 
-/// Convert a locale name to an ICU4X `Collator` using config options.
+/// Convert a locale name to an ICU4X `CollatorBorrowed` using config options.
 ///
 /// This is a convenience wrapper for the common case.
-pub fn locale_to_collator(locale_str: &str, config: &Config) -> Collator {
+pub fn locale_to_collator(locale_str: &str, config: &Config) -> CollatorBorrowed<'static> {
     let locale = resolve_locale(locale_str);
     create_collator(&locale, config)
 }

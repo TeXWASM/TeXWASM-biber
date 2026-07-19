@@ -3348,7 +3348,7 @@ fn process_sortinithash(biber: &mut Biber, secnum: u32, list_name: &str) {
     };
 
     for (citekey, init) in &sortinit_map {
-        let hash = format!("{:x}", Md5::digest(init.as_bytes()));
+        let hash = hex::encode(Md5::digest(init.as_bytes()));
         for list_mut in biber.datalists.get_lists_for_section_mut(secnum) {
             if list_mut.name == *list_name {
                 list_mut.state.sortinithash.insert(citekey.clone(), hash);
