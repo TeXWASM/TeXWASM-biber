@@ -113,7 +113,10 @@ fn parse_args() -> Result<Cli> {
                 std::process::exit(0);
             }
             "--version" | "-V" => {
-                println!("TeXWASM Biber - A Rust port of the Biber bibliography processor {}", env!("CARGO_PKG_VERSION"));
+                println!(
+                    "TeXWASM Biber - A Rust port of the Biber bibliography processor {}",
+                    env!("CARGO_PKG_VERSION")
+                );
                 println!("BCF -> BBL/BBLXML/DOT + tool mode (BibTeX/BiblateXML -> BibTeX/BiblateXML/BBLXML/DOT).");
                 std::process::exit(0);
             }
