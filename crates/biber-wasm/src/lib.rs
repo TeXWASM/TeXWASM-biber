@@ -1,4 +1,4 @@
-//! Browser-facing WASM bindings for the biber port.
+//! Browser-facing WASM bindings for TeXWASM Biber.
 //!
 //! Exposes [`process_biber`]: given a `.bcf` string and an array of
 //! `[name, contents]` `.bib` datasource pairs, parses the BCF, loads
@@ -132,11 +132,10 @@ fn parse_bib_js(bibs: &JsValue) -> Result<Vec<BibDatasource>, JsValue> {
     Ok(result)
 }
 
-/// Get the biber (Rust port) version string.
 #[wasm_bindgen]
 pub fn version() -> String {
     format!(
-        "biber (Rust port) {} — BBL format v{}",
+        "TeXWASM Biber - A Rust port of the Biber bibliography processor {} — BBL format v{}",
         env!("CARGO_PKG_VERSION"),
         biber_core::BBL_VERSION
     )

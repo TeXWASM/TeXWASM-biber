@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Thin CLI for the biber port (native + WASI parity testing)"
+description = "Thin CLI for TeXWASM Biber (native + WASI parity testing)"
 
 [[bin]]
 name = "biber"

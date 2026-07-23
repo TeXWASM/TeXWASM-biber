@@ -1,4 +1,4 @@
-# TeXWASM-biber
+# TeXWASM Biber
 
 A Rust port of [biber](https://github.com/plk/biber), the bibliography
 backend for the [biblatex](https://ctan.org/pkg/biblatex) LaTeX package.
@@ -60,7 +60,7 @@ cargo run -p biber-cli -- --tool --nolog t/tdata/names.bib        # tool mode
 ```
 
 ```
-biber (Rust port) 0.0.0
+TeXWASM Biber - A Rust port of the Biber bibliography processor 1.0.0
 BCF → BBL/BBLXML/DOT + tool mode (BibTeX/BiblateXML ↔ BibTeX/BiblateXML/BBLXML/DOT) + RELAX NG schema generation and output validation.
 
 Usage:

@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "biblatexml output writer for the biber port (deferred: tool-mode only)"
+description = "biblatexml output writer for TeXWASM Biber (deferred: tool-mode only)"
 
 [dependencies]
 biber-core.workspace = true

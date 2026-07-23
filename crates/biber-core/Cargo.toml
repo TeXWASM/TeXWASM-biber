@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Core pipeline, data model, and processing passes for the biber port"
+description = "Core pipeline, data model, and processing passes for TeXWASM Biber"
 
 [features]
 default = []

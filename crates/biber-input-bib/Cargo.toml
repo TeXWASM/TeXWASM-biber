@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "BibTeX (.bib) reader for the biber port (replaces Text::BibTeX)"
+description = "BibTeX (.bib) reader for TeXWASM Biber (replaces Text::BibTeX)"
 
 [dependencies]
 biber-core.workspace = true

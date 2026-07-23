@@ -21,8 +21,8 @@ edition = "2021"
 rust-version = "1.70"
 license = "Artistic-2.0"
 authors = ["François Charette, Philip Kime and Daniel Spitzer"]
-repository = "https://github.com/plk/biber"
-description = "Rust/WASM port of biber (biblatex backend)"
+repository = "https://github.com/TeXWASM/TeXWASM-biber"
+description = "TeXWASM Biber - A Rust port of the Biber bibliography processor"
 
 [workspace.dependencies]
 # Internal crates

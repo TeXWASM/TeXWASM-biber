@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "WASM (browser) bindings for the biber port"
+description = "WASM (browser) bindings for TeXWASM Biber"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
